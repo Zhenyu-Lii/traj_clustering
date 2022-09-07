@@ -43,7 +43,6 @@ class GCN(torch.nn.Module):
         return tmp
 
 model = GCN(hidden_channels=64)
-print(model)
 
 dataset = torch.load('./data/gnn/processed/data.pt')
 data = dataset[0]
@@ -122,6 +121,9 @@ for f in range(1,k+1):
      ta_f.append(np.mean(foldperf['fold{}'.format(f)]['train_acc']))
      testa_f.append(np.mean(foldperf['fold{}'.format(f)]['test_acc']))
 
+
+print('==========Model==========')
+print(model)
 print('Performance of {} fold cross validation'.format(k))
 print("Average Training Loss: {:.3f} \t Average Test Loss: {:.3f} \t Average Training Acc: {:.2f} \t Average Test Acc: {:.2f}".format(np.mean(tl_f),np.mean(testl_f),np.mean(ta_f),np.mean(testa_f)))
 
