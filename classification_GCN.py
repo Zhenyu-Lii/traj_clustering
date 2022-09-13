@@ -51,6 +51,7 @@ def gcn_train(train_idx):
     optimizer.step()  # Update parameters based on gradients.
 
     pred = out.argmax(dim=1)  # Use the class with highest probability.
+    print(type(pred))
     train_correct = pred[train_mask] == y[train_mask]  # Check against ground-truth labels.
     train_acc = int(train_correct.sum()) / int(train_mask.sum())  # Derive ratio of correct predictions.
     return loss, train_acc

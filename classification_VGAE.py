@@ -17,8 +17,7 @@ from torch_geometric.nn import GCNConv
 os.environ['TORCH'] = torch.__version__
 print(torch.__version__)
 
-dataset = torch.load('./data/gnn/processed/data.pt')
-data = dataset[0]
+
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 '''
@@ -37,16 +36,16 @@ val_pos_edge_index = val_data.edge_label_index.to(device)
 '''
 
 print("==========train_test_split_edges(data)==========")
-data.train_mask = data.val_mask = data.test_mask = None
-data = train_test_split_edges(data)
-
-train_mask = [1 if i in data.train_pos_edge_index[0] else 0 for i in range(0,data.num_nodes)]
-val_mask = [1 if i in data.val_pos_edge_index[0] else 0 for i in range(0,data.num_nodes)]
-test_mask = [1 if i in data.test_pos_edge_index[0] else 0 for i in range(0,data.num_nodes)]
+data = torch.load('./data/split_data.pt')
+print("load finished.\n")
+train_mask = torch.tensor([True if i in data.train_pos_edge_index[0] else False for i in range(0,data.num_nodes)])
+val_mask = torch.tensor([True if i in data.val_pos_edge_index[0] else False for i in range(0,data.num_nodes)])
+test_mask =torch.tensor([True if i in data.test_pos_edge_index[0] else False for i in range(0,data.num_nodes)])
 
 train_num = sum(train_mask)
 val_num = sum(val_mask)
 test_num = sum(test_mask)
+print('train_num: {}, val_num: {}, test_num: {}'.format(train_num, val_num, test_num))
 
 x = data.x.to(device)
 y = data.y.long().to(device)
@@ -96,8 +95,12 @@ def train():
     optimizer.step()
 
     pred = out.argmax(dim=1)  # Use the class with highest probability.
-    train_correct = pred[train_mask] == y[train_mask]  # Check against ground-truth labels.
-    train_acc = int(sum(train_correct)) / int(sum(train_mask))  # Derive ratio of correct predictions.\
+    pred_result = pred[train_mask]
+    label = y[train_mask]  # Check against ground-truth labels.
+    train_correct = pred_result.eq(label)
+    tmp1 = train_correct.sum()
+    tmp2 = train_mask.long().sum()
+    train_acc = int(tmp1) / int(tmp2)  # Derive ratio of correct predictions.\
 
     return loss, train_acc
 
@@ -114,16 +117,16 @@ def val():
     with torch.no_grad():
         z = model.gaeLayer.encode(x, val_pos_edge_index)
         out = model.classifyLayer(z, val_pos_edge_index)
-        loss = model.gaeLayer.recon_loss(z, val_pos_edge_index) + criterion(out[train_mask], y[val_mask])
+        loss = model.gaeLayer.recon_loss(z, val_pos_edge_index) + criterion(out[val_mask], y[val_mask])
         pred = out.argmax(dim=1)  # Use the class with highest probability.
-        correct = pred[val_mask] == y[val_mask]  # Check against ground-truth labels.
-        acc = int(sum(correct)) / int(sum(val_mask))  # Derive ratio of correct predictions.
+        correct = pred[val_mask].eq(y[val_mask])  # Check against ground-truth labels.
+        acc = int(correct.sum()) / int(sum(val_mask))  # Derive ratio of correct predictions.
     return loss, acc
 
 from torch.utils.data import Dataset, DataLoader,TensorDataset,random_split,SubsetRandomSampler, ConcatDataset
 
 
-for epoch in range(1, 20):
+for epoch in range(1, 200):
 
     train_loss, train_acc = train()
     val_loss, val_acc = val()
