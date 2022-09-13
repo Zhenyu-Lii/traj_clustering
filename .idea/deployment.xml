@@ -19,7 +19,7 @@
       <paths name="lizhenyu@NAMI">
         <serverdata>
           <mappings>
-            <mapping local="$PROJECT_DIR$" web="/" />
+            <mapping deploy="/E2DTC" local="$PROJECT_DIR$" web="/home/lizhenyu/Project" />
           </mappings>
         </serverdata>
       </paths>

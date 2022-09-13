@@ -326,5 +326,30 @@ class GCN_Net(nn.Module):
         x = F.selu()
         x = self.conv3(x, edge_index)
 
-
         return F.log_softmax(x, dim=1)
+
+class GCN(torch.nn.Module):
+    def __init__(self, input_channels=256 , hidden_channels=64):
+        super().__init__()
+        torch.manual_seed(1234567)
+        self.conv1 = GCNConv(input_channels, hidden_channels)
+        self.conv2 = GCNConv(hidden_channels, 12)
+
+    def forward(self, x, edge_index):
+        x = self.conv1(x, edge_index)
+        x = x.relu()
+        x = F.dropout(x, p=0.5, training=self.training)
+        x = self.conv2(x, edge_index)
+
+        tmp = F.log_softmax(x, dim=1)
+        return tmp
+
+class GCNEncoder(torch.nn.Module):
+    def __init__(self, in_channels, out_channels):
+        super(GCNEncoder, self).__init__()
+        self.conv1 = GCNConv(in_channels, 2 * out_channels, cached=True)  # cached only for transductive learning
+        self.conv2 = GCNConv(2 * out_channels, out_channels, cached=True)  # cached only for transductive learning
+
+    def forward(self, x, edge_index):
+        x = self.conv1(x, edge_index).relu()
+        return self.conv2(x, edge_index)
