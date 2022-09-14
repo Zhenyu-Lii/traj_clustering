@@ -5,14 +5,17 @@ import numpy as np
 from sklearn.model_selection import KFold
 import matplotlib.pyplot as plt
 from sklearn.manifold import TSNE
-import torch.nn.functional as F
-from models import GCNEncoder
+from torch_geometric.transforms import RandomNodeSplit
 from models import GCN
-from torch_geometric.nn import VGAE
-from torch_geometric.nn import GCNConv
+from metrics import nmi_score,  ari_score
 
 os.environ['TORCH'] = torch.__version__
 print(torch.__version__)
+
+os.environ["CUDA_VISIBLE_DEVICES"] = "0,1,2,3"
+devices = [torch.device("cuda:" + str(i)) for i in range(4)]
+for i in range(len(devices)):
+    devices[i] = devices[0]
 
 def visualize(h, color):
     z = TSNE(n_components=2).fit_transform(h.detach().cpu().numpy())
@@ -24,25 +27,42 @@ def visualize(h, color):
 
 dataset = torch.load('./data/gnn/processed/data.pt')
 data = dataset[0]
-out_channels = 2
-num_features = data.num_features
+print(data)
+print()
 
+print(15*'='+'Split Nodes'+15*'=')
+transform = RandomNodeSplit(split='train_rest',num_val=0.1,num_test=0.1)
+data = transform(data)
+train_mask = data.train_mask
+val_mask = data.val_mask
+test_mask = data.test_mask
+
+train_num = sum(train_mask)
+val_num = sum(val_mask)
+test_num = sum(test_mask)
+print('train_num: {}, val_num: {}, test_num: {}'.format(train_num, val_num, test_num))
+
+
+x = data.x.to(devices[0])
+y = data.y.long().to(devices[0])
+edge_index = data.edge_index.to(devices[0])
+
+num_features = data.num_features
+epochs = 50
+
+# model
 model = GCN(hidden_channels=64)
+print(15*'='+'Print Model'+15*'=')
+print(model)
+
+# move to GPU (if available)
+model = model.to(devices[0])
+
+# inizialize the optimizer
 optimizer = torch.optim.Adam(model.parameters(), lr=0.01, weight_decay=5e-4)
 criterion = torch.nn.CrossEntropyLoss()
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "0,1,2,3"
-devices = [torch.device("cuda:" + str(i)) for i in range(4)]
-for i in range(len(devices)):
-    devices[i] = devices[0]
-
-model.to(devices[0])
-x = data.x.to(devices[0])
-y = data.y.long().to(devices[1])
-edge_index = data.edge_index.to(devices[0])
-
-def gcn_train(train_idx):
-    train_mask = torch.tensor(train_idx, dtype=torch.bool)
+def train():
     model.train()
     optimizer.zero_grad()
     out = model(x, edge_index)
@@ -51,22 +71,37 @@ def gcn_train(train_idx):
     optimizer.step()  # Update parameters based on gradients.
 
     pred = out.argmax(dim=1)  # Use the class with highest probability.
-    print(type(pred))
     train_correct = pred[train_mask] == y[train_mask]  # Check against ground-truth labels.
     train_acc = int(train_correct.sum()) / int(train_mask.sum())  # Derive ratio of correct predictions.
-    return loss, train_acc
+    nmi = nmi_score(y[train_mask].cpu(), pred[train_mask].cpu())
+    ari = ari_score(y[train_mask].cpu(), pred[train_mask].cpu())
 
-def val(val_idx):
-    val_mask = torch.tensor(val_idx, dtype=torch.bool)
+    return loss, train_acc, nmi, ari
 
+def val():
     model.eval()
-    out = model(x, edge_index)
-    loss = criterion(out[train_mask], y[train_mask])
-    pred = out.argmax(dim=1)  # Use the class with highest probability.
-    correct = pred[val_mask] == y[val_mask]  # Check against ground-truth labels.
-    acc = int(correct.sum()) / int(val_mask.sum())  # Derive ratio of correct predictions.
-    return loss, acc
+    with torch.no_grad():
+        out = model(x, edge_index)
+        loss = criterion(out[train_mask], y[train_mask])
+        pred = out.argmax(dim=1)  # Use the class with highest probability.
+        correct = pred[val_mask].eq(y[val_mask])  # Check against ground-truth labels.
+        acc = int(correct.sum()) / int(val_mask.sum())  # Derive ratio of correct predictions.
+        nmi = nmi_score(y[val_mask].cpu(), pred[val_mask].cpu())
+        ari = ari_score(y[val_mask].cpu(), pred[val_mask].cpu())
+    return loss, acc, nmi, ari
 
+def test():
+    model.eval()
+    with torch.no_grad():
+        out = model(x, edge_index)
+        pred = out.argmax(dim=1)  # Use the class with highest probability.
+        correct = pred[test_mask].eq(y[test_mask])  # Check against ground-truth labels.
+        acc = int(correct.sum()) / int(sum(test_mask))  # Derive ratio of correct predictions.
+        nmi = nmi_score(y[test_mask].cpu(), pred[test_mask].cpu())
+        ari = ari_score(y[test_mask].cpu(), pred[test_mask].cpu())
+    return acc, nmi, ari
+# ========================K-Fold Validation=============================
+'''
 k=10
 splits=KFold(n_splits=k,shuffle=True,random_state=42)
 foldperf={}
@@ -89,11 +124,6 @@ for fold, (train_idx,val_idx) in enumerate(splits.split(np.arange(len(data.y))))
     foldperf['fold{}'.format(fold+1)] = history
 torch.save(model,'./models/k_cross_GCN.pt')
 
-'''
-we calculate the average score in every fold
-once the average score is obtained for every fold, we calculate the average score over all the folds.
-'''
-
 testl_f,tl_f,testa_f,ta_f=[],[],[],[]
 for f in range(1,k+1):
      tl_f.append(np.mean(foldperf['fold{}'.format(f)]['train_loss']))
@@ -104,4 +134,20 @@ print('==========Model==========')
 print(model)
 print('Performance of {} fold cross validation'.format(k))
 print("Average Training Loss: {:.3f} \t Average Test Loss: {:.3f} \t Average Training Acc: {:.2f} \t Average Test Acc: {:.2f}".format(np.mean(tl_f),np.mean(testl_f),np.mean(ta_f),np.mean(testa_f)))
+'''
+
+
+print(15*'='+'Start Training'+15*'=')
+for epoch in range(1, epochs+1):
+
+    train_loss, train_acc, train_nmi, train_ari = train()
+    val_loss, val_acc, val_nmi, val_ari= val()
+    print(f'Epoch: {epoch:03d}\nTrain Loss: {train_loss:.4f}, Train Acc: {train_acc:.4f}, Train NMI: {train_nmi:.4f}, Train ARI: {train_ari:.4f}'
+          f'\nVal Loss: {val_loss:.4f}, Val Acc: {val_acc:.4f}, Val NMI: {val_nmi:.4f}, Val ARI: {val_ari:.4f}')
+
+acc, nmi, ari = test()
+print(15*'=' + 'Test Result' + 15*'=')
+print(f'test_acc: {acc:.4f}, test_nmi: {nmi:.4f}, test_ari: {ari:.4f}')
+
+torch.save(model,'./models/GAE.pt')
 
