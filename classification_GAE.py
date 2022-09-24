@@ -148,6 +148,7 @@ def val():
 from torch.utils.data import Dataset, DataLoader,TensorDataset,random_split,SubsetRandomSampler, ConcatDataset
 
 print(15*'='+'Start Training'+15*'=')
+print("Total Epochs:", epochs)
 for epoch in range(1, epochs+1):
 
     train_recon_loss, train_classify_loss, train_acc, train_nmi, train_ari = train()

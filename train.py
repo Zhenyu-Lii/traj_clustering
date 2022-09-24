@@ -24,6 +24,32 @@ def init_parameters(model):
         p.data.uniform_(-0.1, 0.1)
 
 
+    '''
+    # word2id/idx2embed初始化
+    word2embed = dict()
+    for i, loc in enumerate(train_word_list_int):
+        word2embed[str(loc)] = embed_npy[i]
+    word2embed['[PAD]'] = np.ones(shape=(embed_size,))
+    word2embed['[MASK]'] = np.ones(shape=(embed_size,))
+    word2embed['[CLS]'] = np.ones(shape=(embed_size,))
+    word2embed['[SEP]'] = np.ones(shape=(embed_size,))
+
+    word2idx = {'[PAD]': 0, '[CLS]': 1, '[SEP]': 2, '[MASK]': 3}
+    for i, w in enumerate(train_word_list_int):
+        if w == '[PAD]' or w == '[MASK]':
+            print("error")
+        word2idx[str(w)] = i + 4
+
+    idx2word = {i: w for i, w in enumerate(word2idx)}
+    idx2embed = {i: word2embed[w] for i, w in enumerate(word2idx)}
+    idx2embed = torch.from_numpy(np.array(list(idx2embed.values())).astype(float))
+    vocab_size = len(word2idx)
+
+    idx2embed = idx2embed.to(devices[0])
+    # define criterion, model, optimizer
+    bert = BERT(vocab_size=vocab_size, id2embed=idx2embed).to(devices[0])
+    '''
+
 def train(args):
     os.environ["CUDA_VISIBLE_DEVICES"] = "0,1,2,3"
     devices = [torch.device("cuda:" + str(i)) for i in range(4)]
@@ -31,8 +57,10 @@ def train(args):
         devices[i] = devices[args.cuda]
     loss_cuda = devices[args.cuda]
 
-    # define criterion, model, optimizer
     dtc = DTC(args, devices)
+    print(15*"="+"Model Structure"+15*"=")
+    print(dtc)
+    print()
     init_parameters(dtc)
     dtc.pretrain()
 

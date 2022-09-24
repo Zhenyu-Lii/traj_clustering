@@ -168,6 +168,7 @@ class DataLoader():
             self.trgdata.append(np.array(t, dtype=np.int32))
             self.mtadata.append(np.array(m, dtype=np.float32))
 
+            np_c = [s, t, m]
             num_line += 1
 
         self.srcdata = np.array(self.srcdata, dtype=object)

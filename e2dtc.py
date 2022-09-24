@@ -90,6 +90,7 @@ parser.add_argument("-dist_decay_speed", type=float, default=0.8,
                     help="""How fast the distance decays in dist2weight, a small value will
     give high weights for cells far away""")
 
+
 parser.add_argument("-max_length", default=200,
                     help="The maximum length of the target sequence")
 

@@ -98,7 +98,10 @@ def reconstructionLoss(gendata,
     # Encoder & decoder
     # output (trg_seq_len, batch, hidden_size)
     # context (batch, hidden_size * num_directions)
+    # 理论上是在这里把input送入bert, 然后bert返回结果？
+
     output, context = autoencoder(input, lengths, target)
+
 
     batch = output.size(1)
     loss = 0

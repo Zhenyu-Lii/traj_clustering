@@ -138,6 +138,7 @@ print("Average Training Loss: {:.3f} \t Average Test Loss: {:.3f} \t Average Tra
 
 
 print(15*'='+'Start Training'+15*'=')
+print("Total Epochs:", epochs)
 for epoch in range(1, epochs+1):
 
     train_loss, train_acc, train_nmi, train_ari = train()
