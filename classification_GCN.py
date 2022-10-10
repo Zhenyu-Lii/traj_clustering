@@ -1,6 +1,7 @@
 # Install required packages.
 import os
 import torch
+from visualize.functions import visualize
 import numpy as np
 from sklearn.model_selection import KFold
 import matplotlib.pyplot as plt
@@ -16,7 +17,7 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "0,1,2,3"
 devices = [torch.device("cuda:" + str(i)) for i in range(4)]
 for i in range(len(devices)):
     devices[i] = devices[0]
-
+'''
 def visualize(h, color):
     z = TSNE(n_components=2).fit_transform(h.detach().cpu().numpy())
     plt.figure(figsize=(10,10))
@@ -24,7 +25,7 @@ def visualize(h, color):
     plt.yticks([])
     plt.scatter(z[:, 0], z[:, 1], s=70, c=color, cmap="Set2")
     plt.show()
-
+'''
 dataset = torch.load('./data/gnn/processed/data.pt')
 data = dataset[0]
 print(data)
@@ -135,17 +136,40 @@ print(model)
 print('Performance of {} fold cross validation'.format(k))
 print("Average Training Loss: {:.3f} \t Average Test Loss: {:.3f} \t Average Training Acc: {:.2f} \t Average Test Acc: {:.2f}".format(np.mean(tl_f),np.mean(testl_f),np.mean(ta_f),np.mean(testa_f)))
 '''
-
+import warnings
+import datetime
+warnings.filterwarnings('ignore')
 
 print(15*'='+'Start Training'+15*'=')
 print("Total Epochs:", epochs)
-for epoch in range(1, epochs+1):
 
+images = []
+for epoch in range(1, epochs+1):
     train_loss, train_acc, train_nmi, train_ari = train()
     val_loss, val_acc, val_nmi, val_ari= val()
     print(f'Epoch: {epoch:03d}\nTrain Loss: {train_loss:.4f}, Train Acc: {train_acc:.4f}, Train NMI: {train_nmi:.4f}, Train ARI: {train_ari:.4f}'
           f'\nVal Loss: {val_loss:.4f}, Val Acc: {val_acc:.4f}, Val NMI: {val_nmi:.4f}, Val ARI: {val_ari:.4f}')
 
+    # save embedding image
+    if epoch < 5:
+        start = datetime.datetime.now()
+        out = model(x, edge_index)
+        image = visualize(out, color=y, epoch=epoch)
+        images.append(image)
+
+        end = datetime.datetime.now()
+        print(15 * '=' + f'TSNE Visualization Image_{epoch} saved. Time: {(end - start).total_seconds()} s' + 15 * '=')
+
+    if epoch % 5 == 0:
+        start = datetime.datetime.now()
+        out = model(x, edge_index)
+        image = visualize(out, color=y, epoch=epoch)
+        images.append(image)
+
+        end = datetime.datetime.now()
+        print(15 * '=' + f'TSNE Visualization Image_{epoch / 5} saved. Time: {(end-start).total_seconds()} s' + 15 * '=')
+images = np.array(images)
+np.save(f'./data/gnn/embeddings/images_epoch{epochs}.npy', images)
 acc, nmi, ari = test()
 print(15*'=' + 'Test Result' + 15*'=')
 print(f'test_acc: {acc:.4f}, test_nmi: {nmi:.4f}, test_ari: {ari:.4f}')

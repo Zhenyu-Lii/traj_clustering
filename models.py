@@ -341,8 +341,8 @@ class GCN(torch.nn.Module):
         x = F.dropout(x, p=0.5, training=self.training)
         x = self.conv2(x, edge_index)
 
-        tmp = F.log_softmax(x, dim=1)
-        return tmp
+        x = F.log_softmax(x, dim=1)
+        return x
 
 class GCNEncoder(torch.nn.Module):
     def __init__(self, in_channels, out_channels):
