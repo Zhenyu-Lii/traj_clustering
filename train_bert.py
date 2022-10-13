@@ -1,15 +1,12 @@
 import losses
-import constants
 import datetime
 
-from bert_mlm_model import BERT
 from data_utils import DataOrderScaner, load_label
 from cluster import update_cluster
-from metrics import nmi_score, ami_score, ari_score, fms_score, cluster_acc, cluster_purity
+from metrics import nmi_score, ari_score, cluster_acc
 from models import DTC, GCN_Net
 
 import torch
-import torch.nn as nn
 from torch.nn.utils import clip_grad_norm_
 import numpy as np
 import os
