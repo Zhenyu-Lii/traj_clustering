@@ -2,3 +2,4 @@
 data/geolife/Geolife Trajectories 1.3.zip
 *.h5
 data/embedding_graph_dynamic_poi_1024.npy
+*.pth
