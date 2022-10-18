@@ -16,7 +16,8 @@ from random import *
 from preprocess import DataSet, MyDataSet
 from utils import next_batch, get_evalution, make_exchange_matrix, Loss_Function
 import config as gl
-from data_utils import gen_train
+from utils_1 import gen_train
+from models import IntermediateLayerGetter
 
 # init embeddings
 loc_index = pd.read_csv('../../data/loc_index.csv',index_col=0)
@@ -93,7 +94,7 @@ print("embed_file:%s, embed_size: %d" % (embed_file, embed_size))
 
 # load datasets
 train_df = pd.read_hdf(os.path.join('./data/Geolife/', train_dataset), key='data')
-train_df = train_df.drop(train_df[train_df['label'] == -1].index)
+# train_df = train_df.drop(train_df[train_df['label'] == -1].index)
 train_data = gen_train(train_df)
 
 # train_word_list1: 20% slower
@@ -311,6 +312,7 @@ for epoch in range(epoch_size):
         #        batch_size, epoch_size, loss_fun, d_model, head, layer, args.datalen, embed_file.replace(".npy", ""),
         #        datetime.datetime.now().strftime("%Y%m%d"),epoch))
         f = open('result2.txt','a+')
+        f.write("vocab_size: %d \n" % vocab_size)
         f.write("epoch: %d \n" %epoch)
         f.write("loss: %.6f" % loss)
         f.write('pth_embed/dataset-batch%s-epoch%s-%s-dmodel%s-head%s_layer%s_datalen%s_%s_%s_epoch%d.pth\n' % (
@@ -320,14 +322,30 @@ for epoch in range(epoch_size):
 
         # eval every 5 epochs, need test_set
         # result = test(test_input_ids, test_masked_tokens, test_masked_pos, test_user_ids, test_day_ids)
-        result = 'no test'
+        result = 'no test\n'
         model.train()
         f.write(result)
         f.close()
 
+# saving embeddings
+return_layers = {'linear': 'feature'}
+backbone = IntermediateLayerGetter(model, return_layers)
+print('===========================Backbone model===============================')
+print(backbone)
+print('========================================================================')
+backbone.eval()
+
+for i, (input_ids, masked_tokens, masked_pos, user_ids, day_ids) in enumerate(loader):
+    print('No.{}'.format(i))
+    print('input_ids: {}; masked_pos: {}; user_id: {}; day_id: {}'.format(input_ids.shape, masked_pos,user_ids,day_ids))
+    # print('input_ids: {}; masked_pos: {}; user_id: {}; day_id: {}'.format(input_ids, masked_pos,user_ids,day_ids))
+    # embedding = backbone(input_ids, masked_pos, user_ids, day_ids)
+
+
+
 pth_dic = './pth_model'
 torch.save({'model': model.state_dict()},
-           pth_dic + '/loc-%s-%s-batch%s-epoch%s-%s-%s.pth' % (
-               args.train_dataset, args.test_dataset, batch_size, epoch_size, loss_fun,
+           pth_dic + '/loc-batch%s-epoch%s-%s-%s.pth' % (
+               batch_size, epoch_size, loss_fun,
                datetime.datetime.now().strftime("%Y%m%d%H")))
 
