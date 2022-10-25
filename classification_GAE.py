@@ -32,9 +32,12 @@ y = data.y.long().to(device)
 train_pos_edge_index = train_data.edge_label_index.to(device)
 val_pos_edge_index = val_data.edge_label_index.to(device)
 '''
+# data_path = './data/split_data.pt'
+# data_path = './feature_learning/bert/data/gnn/geolife_ts/processed/split_edges_data.pt'
+data_path = './feature_learning/bert/data/gnn/geolife_ts/processed/data.pt'
 
 print(15*'='+'Load Dataset'+15*'=')
-data = torch.load('./data/split_data.pt')
+data = torch.load(data_path)
 print(data)
 print()
 '''

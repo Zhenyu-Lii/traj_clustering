@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 import torch
 import torch.nn as nn
 import numpy as np
@@ -214,4 +216,59 @@ class BERT(nn.Module):
         h_masked = self.activ2(self.linear(h_masked))  # [batch_size, max_pred, d_model]
         logits_lm = self.fc2(h_masked)  # [batch_size, max_pred, vocab_size]
         return logits_lm
+
+class IntermediateLayerGetter(nn.ModuleDict):
+    """ get the output of certain layers """
+
+    def __init__(self, model, return_layers):
+        # 判断传入的return_layers是否存在于model中
+        if not set(return_layers).issubset([name for name, _ in model.named_children()]):
+            raise ValueError("return_layers are not present in model")
+
+        orig_return_layers = return_layers
+        return_layers = {k: v for k, v in return_layers.items()}  # 构造dict
+        layers = OrderedDict()
+        # 将要从model中获取信息的最后一层之前的模块全部复制下来
+        for name, module in model.named_children():
+            layers[name] = module
+            if name in return_layers:
+                del return_layers[name]
+            if not return_layers:
+                break
+
+        super(IntermediateLayerGetter, self).__init__(layers)  # 将所需的网络层通过继承的方式保存下来
+        self.return_layers = orig_return_layers
+        self.activ2 = gelu
+
+    def forward(self, input_ids, masked_pos, user_ids=None, temp_ids=None):
+        # output = self.embedding(input_ids, user_ids, temp_ids)  # [bach_size, seq_len, d_model]
+        # enc_self_attn_mask = get_attn_pad_mask(input_ids, input_ids)  # [batch_size, maxlen, maxlen]
+        #
+        # # 将所需的值以k,v的形式保存到out中
+        # for name, module in self.named_children():
+        #     print('module name:', name)
+        #     if name == 'embedding':
+        #         continue
+        #     elif name == 'layers':
+        #         for layer in module:
+        #             output = layer(output, enc_self_attn_mask)
+        #     else:
+        #         masked_pos = masked_pos[:, :, None].expand(-1, -1, d_model)  # [batch_size, max_pred, d_model]
+        #         h_masked = torch.gather(output, 1, masked_pos)  # masking position [batch_size, max_pred, d_model]
+        #         output = self.activ2(self.linear(h_masked))
+        #     print('this module end.')
+
+        output = self.embedding(input_ids, user_ids, temp_ids)  # [bach_size, seq_len, d_model]
+        enc_self_attn_mask = get_attn_pad_mask(input_ids, input_ids)  # [batch_size, maxlen, maxlen]
+        for layer in self.layers:
+            # output: [batch_size, max_len, d_model]
+            output = layer(output, enc_self_attn_mask)
+        # output = self.activ2(self.linear(output))
+        # it will be decided by first token(CLS)
+        # h_pooled = self.fc(output[:, 0])  # [batch_size, d_model]
+        # logits_clsf = self.classifier(h_pooled)  # [batch_size, 2] predict isNext
+        tmp = output[0]
+        traj_embeds = output.mean(axis=1, keepdim=False)
+        return traj_embeds
+
 
