@@ -17,7 +17,6 @@ from preprocess import DataSet, MyDataSet
 from utils import next_batch, get_evalution, make_exchange_matrix, Loss_Function
 import config as gl
 from utils_1 import gen_train
-from models import IntermediateLayerGetter
 
 # init embeddings
 loc_index = pd.read_csv('../../data/loc_index.csv',index_col=0)
@@ -37,13 +36,13 @@ all_data = all_traj.drop(all_traj[all_traj['label']==-1].index)
 parser = argparse.ArgumentParser()
 parser.add_argument('--device', default=0, type=int, help='train device')
 parser.add_argument('--bs', default=256, type=int, help='batch size')
-parser.add_argument('--epoch', default=100, type=int, help='epoch size')
+parser.add_argument('--epoch', default=10, type=int, help='epoch size')
 parser.add_argument('--loss', default='loss', type=str, help='loss fun')
 parser.add_argument('--datalen', default=5, type=int, help='datalen')
 parser.add_argument('--train_dataset', default="train_traj_5", type=str, help='test dataset')
 parser.add_argument('--test_dataset', default="test_traj_5", type=str, help='test dataset')
 parser.add_argument('--embed', default='256', type=str, help='loc id embed')
-parser.add_argument('--d_model', default=1024, type=int, help='embed size')
+parser.add_argument('--d_model', default=256, type=int, help='embed size')
 parser.add_argument('--head', default=2, type=int, help='multi head num')
 parser.add_argument('--layer', default=2, type=int, help='layer')
 
@@ -94,7 +93,7 @@ print("embed_file:%s, embed_size: %d" % (embed_file, embed_size))
 
 # load datasets
 train_df = pd.read_hdf(os.path.join('./data/Geolife/', train_dataset), key='data')
-# train_df = train_df.drop(train_df[train_df['label'] == -1].index)
+train_df = train_df.drop(train_df[train_df['label'] == -1].index)
 train_data = gen_train(train_df)
 
 # train_word_list1: 20% slower
@@ -324,24 +323,36 @@ for epoch in range(epoch_size):
         # result = test(test_input_ids, test_masked_tokens, test_masked_pos, test_user_ids, test_day_ids)
         result = 'no test\n'
         model.train()
+
         f.write(result)
         f.close()
 
-# saving embeddings
-return_layers = {'linear': 'feature'}
+from bert_mlm_model import IntermediateLayerGetter
+return_layers = {'linear': 'linear_feature'}
 backbone = IntermediateLayerGetter(model, return_layers)
 print('===========================Backbone model===============================')
 print(backbone)
 print('========================================================================')
 backbone.eval()
-
+embeddings = torch.zeros(1, 256)
 for i, (input_ids, masked_tokens, masked_pos, user_ids, day_ids) in enumerate(loader):
+    print(20*'=' + 'i: {}'.format(i) + 20*'=')
     print('No.{}'.format(i))
     print('input_ids: {}; masked_pos: {}; user_id: {}; day_id: {}'.format(input_ids.shape, masked_pos,user_ids,day_ids))
     # print('input_ids: {}; masked_pos: {}; user_id: {}; day_id: {}'.format(input_ids, masked_pos,user_ids,day_ids))
-    # embedding = backbone(input_ids, masked_pos, user_ids, day_ids)
+    embedding = backbone(input_ids, masked_pos, user_ids, day_ids)
+    # embedding = model(input_ids, masked_pos, user_ids, day_ids, )
+    if i == 0:
+        embeddings = embedding
+    else:
+        embeddings = torch.concat((embeddings,embedding),0)
 
+    print(20*'=' + 'Embeddings of batch {}'.format(i) +20*'=')
+    print(embeddings)
+    print(embeddings.shape)
 
+embed_dic = './data'
+torch.save(embeddings, embed_dic + '/Geolife/embed_256.pt')
 
 pth_dic = './pth_model'
 torch.save({'model': model.state_dict()},

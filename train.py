@@ -4,7 +4,7 @@ import datetime
 from data_utils import DataOrderScaner, load_label
 from cluster import update_cluster
 from metrics import nmi_score, ami_score, ari_score, fms_score, cluster_acc, cluster_purity
-from models import DTC, GCN_Net
+from models import DTC
 
 import torch
 import torch.nn as nn

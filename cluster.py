@@ -57,8 +57,6 @@ def save_embedding(model, args, cuda0, cuda2):
     '''
     构建GNN的数据集
     '''
-
-
     # 放入datalist
     dataset = MyOwnDataset('./data/gnn', edge_index, X, Y)
 
