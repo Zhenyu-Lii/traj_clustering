@@ -26,7 +26,8 @@ def visualize(h, color):
     plt.scatter(z[:, 0], z[:, 1], s=70, c=color, cmap="Set2")
     plt.show()
 '''
-dataset = torch.load('./data/gnn/processed/data.pt')
+data_path = './feature_learning/bert/data/gnn/geolife_ts/processed/data.pt'
+dataset = torch.load(data_path)
 data = dataset[0]
 print(data)
 print()
@@ -49,7 +50,7 @@ y = data.y.long().to(devices[0])
 edge_index = data.edge_index.to(devices[0])
 
 num_features = data.num_features
-epochs = 50
+epochs = 500
 
 # model
 model = GCN(hidden_channels=64)

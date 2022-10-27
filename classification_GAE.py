@@ -33,11 +33,12 @@ train_pos_edge_index = train_data.edge_label_index.to(device)
 val_pos_edge_index = val_data.edge_label_index.to(device)
 '''
 # data_path = './data/split_data.pt'
-# data_path = './feature_learning/bert/data/gnn/geolife_ts/processed/split_edges_data.pt'
-data_path = './feature_learning/bert/data/gnn/geolife_ts/processed/data.pt'
+data_path = './feature_learning/bert/data/gnn/geolife_ts/processed/split_edges_data.pt'
+# data_path = './feature_learning/bert/data/gnn/geolife_ts/processed/data.pt'
 
 print(15*'='+'Load Dataset'+15*'=')
 data = torch.load(data_path)
+# data = dataset[0]
 print(data)
 print()
 '''
@@ -67,7 +68,7 @@ test_pos_edge_index = data.test_pos_edge_index.to(device)
 # parameters
 out_channels = 2
 num_features = data.num_features
-epochs = 200
+epochs = 500
 
 # model
 class MODEL(torch.nn.Module):
