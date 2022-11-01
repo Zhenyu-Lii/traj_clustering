@@ -1,4 +1,5 @@
 # Install required packages.
+import datetime
 import os
 import torch
 import numpy as np
@@ -13,11 +14,13 @@ from models import GCNEncoder
 from models import GCN
 from torch_geometric.nn import GAE
 from torch_geometric.nn import GCNConv
-from metrics import nmi_score,  ari_score
+from metrics import nmi_score, ari_score, cluster_acc
+
 os.environ['TORCH'] = torch.__version__
 print(torch.__version__)
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
 '''
 print("==========RandomLinkSplit==========")
 transform = RandomLinkSplit(is_undirected=True)
@@ -32,20 +35,31 @@ y = data.y.long().to(device)
 train_pos_edge_index = train_data.edge_label_index.to(device)
 val_pos_edge_index = val_data.edge_label_index.to(device)
 '''
-# data_path = './data/split_data.pt'
-data_path = './feature_learning/bert/data/gnn/geolife_ts/processed/split_edges_data.pt'
+# 不同的数据集
+# data_path = './data/split_data.pt' # 原始的Geolife(86113)
 # data_path = './feature_learning/bert/data/gnn/geolife_ts/processed/data.pt'
+data_path = './feature_learning/bert/data/gnn/geolife_ts/processed' # timeslot的Geolife(275)
+data_path = './feature_learning/bert/data/gnn/geolife_ts_79/processed' # max_len设为79的Geolife(61147)
+# data_path = './data/gnn/filtered/processed'
+data_path = './feature_learning/bert/data/gnn/geolife_e2dtc_filtered/processed'
 
 print(15*'='+'Load Dataset'+15*'=')
-data = torch.load(data_path)
+data = torch.load(data_path+'/split_edges_data.pt')
+
+# print("==========train_test_split_edges(data)==========")
+# data.train_mask = data.val_mask = data.test_mask = None
+# data = train_test_split_edges(data)
+# torch.save(data, data_path + '/split_edges_data.pt')
 # data = dataset[0]
 print(data)
 print()
+
 '''
 train_mask = torch.tensor([True if i in data.train_pos_edge_index[0] else False for i in range(0,data.num_nodes)])
 val_mask = torch.tensor([True if i in data.val_pos_edge_index[0] else False for i in range(0,data.num_nodes)])
 test_mask =torch.tensor([True if i in data.test_pos_edge_index[0] else False for i in range(0,data.num_nodes)])
 '''
+
 print(15*'='+'Split Nodes'+15*'=')
 transform = RandomNodeSplit(split='train_rest',num_val=0.1,num_test=0.1)
 data = transform(data)
@@ -66,13 +80,13 @@ train_pos_edge_index = data.train_pos_edge_index.to(device)
 val_pos_edge_index = data.val_pos_edge_index.to(device)
 test_pos_edge_index = data.test_pos_edge_index.to(device)
 # parameters
-out_channels = 2
+out_channels = 256
 num_features = data.num_features
-epochs = 500
+epochs = 200
 
 # model
 class MODEL(torch.nn.Module):
-    def __init__(self, num_features=256, out_channels=2, hidden_channels=64):
+    def __init__(self, num_features=256, out_channels=out_channels, hidden_channels=64):
         super().__init__()
         torch.manual_seed(1234567)
         self.gaeLayer = GAE(GCNEncoder(num_features, out_channels))
@@ -81,7 +95,6 @@ class MODEL(torch.nn.Module):
     def forward(self, x, edge_index):
         z = self.gaeLayer.encoder.forward(x, edge_index)
         c = self.classifyLayer.forward(z, edge_index)
-
         return c
 
 model = MODEL(num_features, out_channels, hidden_channels=64)
@@ -103,19 +116,24 @@ def train():
     # Compute the loss solely based on the training nodes.
     recon_loss = model.gaeLayer.recon_loss(z, train_pos_edge_index)
     classify_loss = criterion(out[train_mask], y[train_mask])
-    #if args.variational:
+    # if args.variational:
     loss = recon_loss + classify_loss
-    #   loss = loss + (1 / data.num_nodes) * model.kl_loss()
+
+    # loss = loss + (1 / data.num_nodes) * model.kl_loss()
+
     loss.backward()
     optimizer.step()
 
     pred = out.argmax(dim=1)  # Use the class with highest probability.
     pred_result = pred[train_mask]
     label = y[train_mask]  # Check against ground-truth labels.
-    train_correct = pred_result.eq(label)
-    tmp1 = train_correct.sum()
-    tmp2 = train_mask.long().sum()
-    train_acc = int(tmp1) / int(tmp2)  # Derive ratio of correct predictions.\
+
+    # train_correct = pred_result.eq(label)
+    # tmp1 = train_correct.sum()
+    # tmp2 = train_mask.long().sum()
+    # train_acc = int(tmp1) / int(tmp2)  # Derive ratio of correct predictions.
+
+    train_acc = cluster_acc(label.cpu().numpy(), pred_result.cpu().numpy()) # UACC
     nmi = nmi_score(label.cpu(), pred_result.cpu())
     ari = ari_score(label.cpu(), pred_result.cpu())
 
@@ -134,7 +152,6 @@ def test():
         ari = ari_score(y[test_mask].cpu(), pred[test_mask].cpu())
     return acc, nmi, ari
 
-
 def val():
     model.eval()
     with torch.no_grad():
@@ -147,6 +164,7 @@ def val():
         acc = int(correct.sum()) / int(sum(val_mask))  # Derive ratio of correct predictions.
         nmi = nmi_score(y[val_mask].cpu(), pred[val_mask].cpu())
         ari = ari_score(y[val_mask].cpu(), pred[val_mask].cpu())
+
     return recon_loss, classify_loss, acc, nmi, ari
 
 from torch.utils.data import Dataset, DataLoader,TensorDataset,random_split,SubsetRandomSampler, ConcatDataset
@@ -157,7 +175,9 @@ for epoch in range(1, epochs+1):
 
     train_recon_loss, train_classify_loss, train_acc, train_nmi, train_ari = train()
     val_recon_loss, val_classify_loss, val_acc, val_nmi, val_ari= val()
-    print(f'Epoch: {epoch:03d}\nTrain Loss: {train_recon_loss+train_classify_loss:.4f}, Train Acc: {train_acc:.4f}, Train NMI: {train_nmi:.4f}, Train ARI: {train_ari:.4f}, recon_loss: {train_recon_loss:.4f}, cross_entropy_loss: {train_classify_loss:.4f}'
+    print(f'Epoch: {epoch:03d}')
+    print("Time:", datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    print(f'Train Loss: {train_recon_loss+train_classify_loss:.4f}, Train Acc: {train_acc:.4f}, Train NMI: {train_nmi:.4f}, Train ARI: {train_ari:.4f}, recon_loss: {train_recon_loss:.4f}, cross_entropy_loss: {train_classify_loss:.4f}'
           f'\nVal Loss: {val_recon_loss+val_classify_loss:.4f}, Val Acc: {val_acc:.4f}, Val NMI: {val_nmi:.4f}, Val ARI: {val_ari:.4f}, recon_loss: {val_recon_loss:.4f}, cross_entropy_loss: {val_classify_loss:.4f}')
 
 acc, nmi, ari = test()
