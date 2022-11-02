@@ -141,7 +141,7 @@ def clusteringLoss(clusterlayer, context, p, cuda2, loss_cuda):
     kl_loss = clusterloss(q, p, loss_cuda)
 
     return kl_loss.div(batch)
-
+    # return kl_loss
 
 def triLoss(a, p, n, autoencoder, loss_cuda):
     """

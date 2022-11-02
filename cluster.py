@@ -9,7 +9,7 @@ from torch_geometric.utils.convert import from_scipy_sparse_matrix
 from scipy.sparse import coo_matrix
 import os
 
-def init_cluster(vecs, clusterlayer, n_clusters, cuda2):
+def init_cluster(vecs, clusterlayer, n_clusters, cuda2, dataset_path):
     clusterlayer.eval()
     vecs = vecs.cpu()
     kmeans = KMeans(n_clusters=n_clusters, n_init=100,
@@ -21,7 +21,7 @@ def init_cluster(vecs, clusterlayer, n_clusters, cuda2):
     torch.save({
         "clusters": clusterlayer.clusters.data.cpu(),
         "n_clusters": n_clusters
-    }, './dataset/cluster_center.pt')
+    }, dataset_path + '/cluster_center.pt')
     print("-" * 7 + "Initiated cluster center" + "-" * 7)
 
 def save_embedding(model, args, cuda0, cuda2):
