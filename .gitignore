@@ -15,3 +15,4 @@ data/embedding_graph_dynamic_poi_1024.npy
 *.npy
 feature_learning/bert/data/Geolife.zip
 *.npy
+*.npy
