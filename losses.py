@@ -123,7 +123,7 @@ def reconstructionLoss(gendata,
     return loss.div(batch), context
 
 
-def clusteringLoss(clusterlayer, context, p, q, cuda2, loss_cuda):
+def clusteringLoss(clusterlayer, context, p, cuda2, loss_cuda):
     """
     One batch cluster KL loss
 
@@ -137,7 +137,7 @@ def clusteringLoss(clusterlayer, context, p, q, cuda2, loss_cuda):
     """
     batch = context.size(0)
     assert batch == p.size(0)
-    q.to(cuda2)
+    q = clusterlayer(context.to(cuda2))
     kl_loss = clusterloss(q, p, loss_cuda)
 
     return kl_loss.div(batch)
