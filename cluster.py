@@ -1,11 +1,28 @@
 import torch
 import numpy as np
+from sklearn.cluster import KMeans
+
 from data_utils import DataOrderScaner, load_label
 from data_utils import MyOwnDataset
 from sklearn.neighbors import NearestNeighbors
 from torch_geometric.utils.convert import from_scipy_sparse_matrix
 from scipy.sparse import coo_matrix
 import os
+
+def init_cluster(vecs, clusterlayer, n_clusters, cuda2):
+    clusterlayer.eval()
+    vecs = vecs.cpu()
+    kmeans = KMeans(n_clusters=n_clusters, n_init=100,
+                    random_state=58).fit(vecs.numpy())
+    # 将kmeans的质心设置为初始的Cj
+    clusterlayer.clusters.data = torch.Tensor(
+        kmeans.cluster_centers_).to(cuda2)
+    clusterlayer.train()
+    torch.save({
+        "clusters": clusterlayer.clusters.data.cpu(),
+        "n_clusters": n_clusters
+    }, './dataset/cluster_center.pt')
+    print("-" * 7 + "Initiated cluster center" + "-" * 7)
 
 def save_embedding(model, args, cuda0, cuda2):
     autoencoder, clusterlayer = model
@@ -40,11 +57,12 @@ def save_embedding(model, args, cuda0, cuda2):
         context = context[invp]
         vecs.append(context.cpu().data)
 
-    # 在这里生成了所有的embedding，可以构造全局的KNNG，考虑使用rNNG，怎么定义radius呢？
+    # 在这里生成了所有的embedding，可以构造全局的fKNNG，考虑使用rNNG，怎么定义radius呢？
     vecs = torch.cat(vecs)
 
+    print("=> Generate KNN Graph...")
     X = np.array(vecs.cpu())
-    #改成radius
+
     nbrs = NearestNeighbors(n_neighbors=10, algorithm='ball_tree').fit(X)
     distances, indices = nbrs.kneighbors(X)
     A = nbrs.kneighbors_graph(X).toarray()
@@ -58,7 +76,7 @@ def save_embedding(model, args, cuda0, cuda2):
     构建GNN的数据集
     '''
     # 放入datalist
-    dataset = MyOwnDataset('./data/gnn', edge_index, X, Y)
+    dataset = MyOwnDataset('./data/gnn/filtered', edge_index, X, Y)
 
 '''
     torch.save({
@@ -75,46 +93,4 @@ def target_distribution(q):
     # p (batch,n_clusters): target distribution
     weight = q**2 / q.sum(0)
     p = (weight.t() / weight.sum(1)).t()
-    return p 
-
-
-def update_cluster(dtc, args, cuda0, cuda2):
-    q = []
-    vecs = []
-    dtc.eval()
-    autoencoder, clusterlayer = dtc.autoencoder, dtc.clusterlayer
-
-    scaner = DataOrderScaner(args.src_file, args.batch)
-    scaner.load()  # load trg data
-    while True:
-        trjdata = scaner.getbatch()
-        if trjdata is None:
-            break
-        src, lengths, invp = trjdata.src, trjdata.lengths, trjdata.invp
-        src, lengths = src.to(cuda0), lengths.to(cuda0)
-
-        # get trajectory represention
-        # (batch, hidden_size * num_directions)
-        context = autoencoder.encoder_hn(src, lengths)
-        context = context[invp]
-        '''
-        use this context to construct KNN Graph
-        Input: context(features) 
-    
-        X = np.array(context.cpu())
-        nbrs = NearestNeighbors(n_neighbors=10, algorithm='ball_tree').fit(X)
-        distances, indices = nbrs.kneighbors(X)
-        A = nbrs.kneighbors_graph(X).toarray()
-        '''
-
-        # q_i (batch,n_clusters)
-        q_i = clusterlayer(context)
-        q.append(q_i.cpu().data)
-        vecs.append(context.cpu().data)
-
-    # (datasize,n_clusters)
-    q = torch.cat(q)
-    vecs = torch.cat(vecs)
-
-    dtc.train()
-    return vecs, q, target_distribution(q)
+    return p

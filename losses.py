@@ -123,7 +123,7 @@ def reconstructionLoss(gendata,
     return loss.div(batch), context
 
 
-def clusteringLoss(clusterlayer, context, p, cuda2, loss_cuda):
+def clusteringLoss(clusterlayer, context, p, q, cuda2, loss_cuda):
     """
     One batch cluster KL loss
 
@@ -137,7 +137,7 @@ def clusteringLoss(clusterlayer, context, p, cuda2, loss_cuda):
     """
     batch = context.size(0)
     assert batch == p.size(0)
-    q = clusterlayer(context.to(cuda2))
+    q.to(cuda2)
     kl_loss = clusterloss(q, p, loss_cuda)
 
     return kl_loss.div(batch)
@@ -167,3 +167,34 @@ def triLoss(a, p, n, autoencoder, loss_cuda):
     triplet_loss = nn.TripletMarginLoss(margin=1.0, p=2).to(loss_cuda)
 
     return triplet_loss(a_context[a_invp], p_context[p_invp], n_context[n_invp])
+
+def target_distribution(q):
+    # clustering target distributio
+    # \n for self-training
+    # q (batch,n_clusters): similarity between embedded point and cluster center
+    # p (batch,n_clusters): target distribution
+    weight = q**2 / q.sum(0)
+    p = (weight.t() / weight.sum(1)).t()
+    return p
+
+def clusterloss(q, p, loss_cuda):
+    '''
+    caculate the KL loss for clustering
+    '''
+    q, p = q.to(loss_cuda), p.to(loss_cuda)
+    criterion = torch.nn.KLDivLoss(reduction='sum').to(loss_cuda)
+    return criterion(q.log(), p)
+
+def kl_loss(context, loss_cuda, alpha=1, clusters=12,):
+    batch = context.size(0)
+    # assert batch == p.size(0)
+    # q = clusterlayer(context.to(device))
+    distance = torch.sum(
+        torch.pow(context.unsqueeze(1) - clusters, 2), 2)
+    q = 1.0 / (1.0 + distance / alpha)
+    q = q.pow((alpha + 1.0) / 2.0)
+    q = (q.t() / torch.sum(q, 1)).t()
+    p = target_distribution(q)[0]
+    kl_loss = clusterloss(q, p, loss_cuda)
+
+    return kl_loss.div(batch)

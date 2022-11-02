@@ -13,7 +13,7 @@ from torch import optim
 import pandas as pd
 import torch.utils.data as Data
 from random import *
-from preprocess import DataSet, MyDataSet
+from preprocess import MyDataSet
 from utils import next_batch, get_evalution, make_exchange_matrix, Loss_Function
 import config as gl
 from utils_1 import gen_train
@@ -28,9 +28,12 @@ cwd = os.path.abspath('.')
 embed_256 = np.random.randn(loc_size, embed_size)
 np.save('data/Geolife/embedding_256.npy', embed_256)
 
+# datalen 设置为79
+all_traj = pd.read_hdf('./data/E2DTC/data.h5')
+
 # drop掉label为-1的轨迹
-all_traj = pd.read_hdf(cwd+"/all_traj_labeled_σ_{sgm}_λ_{lbd}.h5".format(sgm=sgm, lbd=lbd), key='data')
-all_data = all_traj.drop(all_traj[all_traj['label']==-1].index)
+# all_traj = pd.read_hdf(cwd+"/all_traj_labeled_σ_{sgm}_λ_{lbd}.h5".format(sgm=sgm, lbd=lbd), key='data')
+# all_data = all_traj.drop(all_traj[all_traj['label']==-1].index)
 
 # BERT
 parser = argparse.ArgumentParser()
@@ -52,7 +55,8 @@ batch_size = args.bs
 epoch_size = args.epoch
 loss_fun = args.loss
 
-train_dataset = 'all_traj_labeled_σ_{sgm}_λ_{lbd}.h5'.format(sgm=sgm, lbd=lbd)
+# train_dataset = 'all_traj_labeled_σ_{sgm}_λ_{lbd}.h5'.format(sgm=sgm, lbd=lbd)
+train_dataset = 'E2DTC/data.h5'
 test_dataset = 'test_traj_' + str(args.datalen) + ".h5"
 embed_index = int(args.embed)
 print(train_dataset)
@@ -91,11 +95,14 @@ gl.set_value('pre_em_size', embed_size)
 embed_size = embed_npy.shape[1]
 print("embed_file:%s, embed_size: %d" % (embed_file, embed_size))
 
-# load datasets
-train_df = pd.read_hdf(os.path.join('./data/Geolife/', train_dataset), key='data')
-train_df = train_df.drop(train_df[train_df['label'] == -1].index)
-train_data = gen_train(train_df)
 
+# load datasets
+# train_df = pd.read_hdf(os.path.join('./data/Geolife/', train_dataset), key='data')
+# train_df = train_df.drop(train_df[train_df['label'] == -1].index)
+# train_data = gen_train(train_df)
+
+train_df = pd.read_hdf(os.path.join('./data/', train_dataset))
+train_data = gen_train(train_df)
 # train_word_list1: 20% slower
 # time1 = time.time()
 # train_word_list1 = list(
@@ -339,20 +346,21 @@ for i, (input_ids, masked_tokens, masked_pos, user_ids, day_ids) in enumerate(lo
     print(20*'=' + 'i: {}'.format(i) + 20*'=')
     print('No.{}'.format(i))
     print('input_ids: {}; masked_pos: {}; user_id: {}; day_id: {}'.format(input_ids.shape, masked_pos,user_ids,day_ids))
-    # print('input_ids: {}; masked_pos: {}; user_id: {}; day_id: {}'.format(input_ids, masked_pos,user_ids,day_ids))
     embedding = backbone(input_ids, masked_pos, user_ids, day_ids)
-    # embedding = model(input_ids, masked_pos, user_ids, day_ids, )
-    if i == 0:
-        embeddings = embedding
-    else:
-        embeddings = torch.concat((embeddings,embedding),0)
+    torch.save(embedding, f'./data/E2DTC/maxlen_79/embed_256_batch_{i}.pt')
+    print(f'=====> embeddings of batch {i} saved.')
+    # if i == 0:
+    #     embeddings = embedding
+    # else:
+    #     embeddings = torch.concat((embeddings,embedding),0)
 
-    print(20*'=' + 'Embeddings of batch {}'.format(i) +20*'=')
-    print(embeddings)
-    print(embeddings.shape)
+    # print(20*'=' + 'Embeddings of batch {}'.format(i) +20*'=')
+    # print(embeddings)
+    # print(embeddings.shape)
 
-embed_dic = './data'
-torch.save(embeddings, embed_dic + '/Geolife/embed_256.pt')
+# embed_dic = './data'
+# torch.save(embeddings, embed_dic + '/Geolife/embed_256.pt')
+# torch.save(embeddings, embed_dic + '/E2DTC/embed_256_maxlen_79.pt')
 
 pth_dic = './pth_model'
 torch.save({'model': model.state_dict()},

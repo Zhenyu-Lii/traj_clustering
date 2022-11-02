@@ -247,11 +247,11 @@ class EncoderDecoder(nn.Module):
 
 
 class clusterLayer(nn.Module):
-    def __init__(self, args, alpha=1):
+    def __init__(self, n_clusters, hidden_size, alpha=1):
         super(clusterLayer, self).__init__()
 
         self.clusters = Parameter(torch.Tensor(
-            args.n_clusters, args.hidden_size), requires_grad=args.update_centroids)
+            n_clusters, hidden_size), requires_grad=True)
         self.alpha = alpha
 
     def forward(self, context):
