@@ -18,7 +18,8 @@ n_heads = gl.get_value('head')
 
 d_ff = d_model * 4  # 4*d_model, FeedForward dimension
 d_k = d_v = d_model//n_heads  # dimension of K(=Q), V
-max_len = 50  # 轨迹的最大长度
+# max_len = 50  # 轨迹的最大长度
+max_len = 79  # 轨迹的最大长度
 temp_size = 29  # day 的个数
 user_size = 10000  # user的个数
 
@@ -131,7 +132,8 @@ class MultiHeadAttention(nn.Module):
 
         self.selfAttention =ScaledDotProductAttention()
 
-        self.time_weight = nn.Parameter(torch.ones(n_heads, 50,50))
+        # self.time_weight = nn.Parameter(torch.ones(n_heads, 50,50))
+        self.time_weight = nn.Parameter(torch.ones(n_heads, max_len, max_len))
 
     def forward(self, Q, K, V, attn_mask):
         # q: [batch_size, seq_len, d_model], k: [batch_size, seq_len, d_model], v: [batch_size, seq_len, d_model]

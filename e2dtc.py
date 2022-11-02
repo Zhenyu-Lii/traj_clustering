@@ -6,13 +6,22 @@ root_path = "."
 
 parser = argparse.ArgumentParser(description="e2dtc.py")
 
-parser.add_argument("-data", default=root_path + "/data",
-                    help="Path to training and validating data")
+# parser.add_argument("-data", default=root_path + "/data",
+#                     help="Path to training and validating data")
 
-parser.add_argument("-src_file", default=root_path + "/data/trj_vocab.h5",
+parser.add_argument("-data", default=root_path + "/data/filtered",
+                    help="Path to training and validating data")
+#
+# parser.add_argument("-src_file", default=root_path + "/data/trj_vocab.h5",
+#                     help="source trajectory file to cluster")
+
+parser.add_argument("-src_file", default=root_path + "/data/trj_vocab_filtered.h5",
                     help="source trajectory file to cluster")
 
-parser.add_argument("-label_file", default=root_path + "/data/labels.pkl",
+# parser.add_argument("-label_file", default=root_path + "/data/labels.pkl",
+#                     help="cluster label")
+
+parser.add_argument("-label_file", default=root_path + "/data/labels_filtered.pkl",
                     help="cluster label")
 
 parser.add_argument("-model", default=root_path + "/model",
