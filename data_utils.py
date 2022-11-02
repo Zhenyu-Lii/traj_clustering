@@ -115,7 +115,9 @@ def pad_arrays_keep_invp(src):
     lengths = torch.LongTensor(lengths)
     src = pad_arrays(src)
     invp = torch.LongTensor(invpermute(idx))
-    return src.t().contiguous(), lengths.view(1, -1), invp
+
+    result = [src.t().contiguous(), lengths.view(1, -1), invp]
+    return result[0], result[1], result[2]
 
 
 def load_label(labelpath):

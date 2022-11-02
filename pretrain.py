@@ -89,17 +89,17 @@ def pretrain_ae(model, args, cuda0, cuda1, loss_cuda):
     print("-"*7 + " start pretrain " + "-"*7)
     # load data for pretrain
     print("=> Reading training data...")
-    trainsrc = os.path.join(args.data, "train.src")
-    traintrg = os.path.join(args.data, "train.trg")
-    trainmta = os.path.join(args.data, "train.mta")
+    trainsrc = os.path.join(args.data, "train_filtered.src")
+    traintrg = os.path.join(args.data, "train_filtered.trg")
+    trainmta = os.path.join(args.data, "train_filtered.mta")
     trainData = DataLoader(trainsrc, traintrg, trainmta,
                            args.batch)
     trainData.load()
     print("Loaded data,training data size ", trainData.size)
 
-    valsrc = os.path.join(args.data, "val.src")
-    valtrg = os.path.join(args.data, "val.trg")
-    valmta = os.path.join(args.data, "val.mta")
+    valsrc = os.path.join(args.data, "val_filtered.src")
+    valtrg = os.path.join(args.data, "val_filtered.trg")
+    valmta = os.path.join(args.data, "val_filtered.mta")
     validation = True
 
     if os.path.isfile(valsrc) and os.path.isfile(valtrg):
