@@ -259,6 +259,7 @@ class clusterLayer(nn.Module):
         # clusters (n_clusters, hidden_size * num_directions)
         # context (batch, hidden_size * num_directions)
         # q (batch,n_clusters): similarity between embedded point and cluster center
+
         distance = torch.sum(
             torch.pow(context.unsqueeze(1) - self.clusters, 2), 2)
         q = 1.0 / (1.0 + distance / self.alpha)

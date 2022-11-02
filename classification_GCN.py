@@ -1,5 +1,6 @@
 # Install required packages.
 import argparse
+import datetime
 import os
 import torch
 from visualize.functions import visualize
@@ -83,6 +84,7 @@ def train():
     output = model(x, edge_index)
 
     q = output
+    q = clusterlayer(x.to(devices[2]))
     p = cluster.target_distribution(q)
     # p_select = p[0]
 
@@ -141,8 +143,10 @@ print("Total Epochs:", epochs)
 cluster.init_cluster(x, clusterlayer, n_clusters, devices[2])
 for epoch in range(1, epochs+1):
     train_loss, train_acc, train_nmi, train_ari = train()
-    val_loss, val_acc, val_nmi, val_ari= val()
-    print(f'Epoch: {epoch:03d}\nTrain Loss: {train_loss:.4f}, Train Acc: {train_acc:.4f}, Train NMI: {train_nmi:.4f}, Train ARI: {train_ari:.4f}'
+    val_loss, val_acc, val_nmi, val_ari = val()
+    print(f'Epoch: {epoch:03d}')
+    print("Time:", datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    print(f'Train Loss: {train_loss:.4f}, Train Acc: {train_acc:.4f}, Train NMI: {train_nmi:.4f}, Train ARI: {train_ari:.4f}'
           f'\nVal Loss: {val_loss:.4f}, Val Acc: {val_acc:.4f}, Val NMI: {val_nmi:.4f}, Val ARI: {val_ari:.4f}')
 
 acc, nmi, ari = test()
