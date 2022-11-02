@@ -1,5 +1,7 @@
 import datetime
 import os
+import time
+
 import torch
 from torch_geometric.transforms import RandomNodeSplit
 from models import GCN, clusterLayer
@@ -13,16 +15,18 @@ devices = [torch.device("cuda:" + str(i)) for i in range(4)]
     # devices[i] = devices[0]
 loss_cuda = devices[0]
 
-data_path = './dataset/gnn/geolife_ts_bert/processed/data.pt'
+print(15*'=' + 'Load Dataset' + 15*'=')
+dataset_path = './dataset/gnn/geolife_e2dtc_gru'
+dataset_path = './dataset/gnn/geolife_ts_bert'
 # data_path = './data/gnn/processed/data.pt'
 epochs = 100
 hidden_size = 256
 n_clusters = 12
 alpha = 1
 
-dataset = torch.load(data_path)
+dataset = torch.load(dataset_path + '/processed/data.pt')
 data = dataset[0]
-print(f'data_path: {data_path}')
+print('data_path: {}'.format(dataset_path + '/processed/data.pt'))
 print(data)
 print()
 
@@ -52,7 +56,7 @@ print()
 # move to GPU (if available)
 model = model.to(devices[0])
 clusterlayer = clusterLayer(n_clusters, hidden_size, alpha).to(devices[2])
-optimizer = torch.optim.Adam(model.parameters(), lr=0.01, weight_decay=5e-4)
+optimizer = torch.optim.Adam(model.parameters(), lr=0.1, weight_decay=5e-4)
 # criterion = torch.nn.CrossEntropyLoss().to(devices[0])
 
 def train():
@@ -116,10 +120,15 @@ def test():
         ari = ari_score(y[test_mask].cpu(), pred[test_mask].cpu())
     return acc, nmi, ari
 
+print(15*'=' + 'Initiate Clusters' + 15*'=')
+print("Time:", datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+start_time = time.time()
+cluster.init_cluster(x, clusterlayer, n_clusters, devices[2], dataset_path)
+end_time = time.time()
+print(f"Time: {end_time-start_time:.2f}s")
+
 print(15*'='+'Start Training'+15*'=')
 print("Total Epochs:", epochs)
-
-cluster.init_cluster(x, clusterlayer, n_clusters, devices[2])
 for epoch in range(1, epochs+1):
     train_loss, train_acc, train_nmi, train_ari = train()
     val_loss, val_acc, val_nmi, val_ari = val()
