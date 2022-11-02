@@ -335,7 +335,7 @@ class GCN(torch.nn.Module):
         super().__init__()
         torch.manual_seed(1234567)
         self.conv1 = GCNConv(input_channels, hidden_channels)
-        self.conv2 = GCNConv(hidden_channels, 12)
+        self.conv2 = GCNConv(hidden_channels, 256)
 
     def forward(self, x, edge_index):
         x = self.conv1(x, edge_index)
@@ -343,7 +343,7 @@ class GCN(torch.nn.Module):
         x = F.dropout(x, p=0.5, training=self.training)
         x = self.conv2(x, edge_index)
 
-        x = F.log_softmax(x, dim=1)
+        # x = F.log_softmax(x, dim=1)
         return x
 
 class GCNEncoder(torch.nn.Module):
