@@ -10,5 +10,6 @@ data/embedding_graph_dynamic_poi_1024.npy
 *.mta
 *.npy
 feature_learning/bert/data/Geolife.zip
+feature_learning/bert/data/Geolife/embeddings_256.npy
 /preprocess/Geolife/processed/
 /preprocess/CDR/processed/
