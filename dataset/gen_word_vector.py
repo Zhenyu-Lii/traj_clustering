@@ -38,7 +38,7 @@ word_list = [gen_word_vector(max_id, traj) for traj in data['trajectory']]
 # for traj in data['trajectory']:
 #     word_list.append(gen_word_vector(max_id, traj))
 
-torch.save(torch.tensor(word_list), f'./traj/{dataset}/bow.pt')
+torch.save(torch.tensor(word_list), f'./traj/{dataset}/embeddings/bow.pt')
 print('==>word list saved.')
 print(f'save_path: ./traj/{dataset}/{dataset}_bow.pt')
 

@@ -30,10 +30,10 @@ cwd = os.path.abspath('.')
 
 # E2DTC
 dataset = 'e2dtcF'
-embed_name = 'e2dtcF_bow'
+embed_name = 'e2dtcF_bert'
 
 traj_path = f'./traj/{dataset}/data.h5'
-data_path = f'./traj/{dataset}/{embed_name}.pt'
+data_path = f'./traj/{dataset}/embeddings/{embed_name}.pt'
 
 word_list = torch.load(data_path).numpy()
 all_traj = pd.read_hdf(traj_path)
