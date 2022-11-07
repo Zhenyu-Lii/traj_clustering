@@ -35,9 +35,12 @@ embed_name = 'e2dtcF_bert'
 traj_path = f'./traj/{dataset}/data.h5'
 data_path = f'./traj/{dataset}/embeddings/{embed_name}.pt'
 
-word_list = torch.load(data_path).numpy()
+vecs = torch.load(data_path).numpy()
+vecs = (10*vecs).round()
 all_traj = pd.read_hdf(traj_path)
 labels = np.array(all_traj['label']).T
 
-np.savetxt(f'./for_sdcn/{dataset}/{embed_name}.txt', word_list, fmt='%d')
+np.savetxt(f'./for_sdcn/{dataset}/{embed_name}.txt', vecs, fmt='%d')
 np.savetxt(f'./for_sdcn/{dataset}/{embed_name}_label.txt', labels, fmt='%d')
+
+# copy files to Projects/SDCN/data

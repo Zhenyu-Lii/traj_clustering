@@ -29,10 +29,10 @@ cwd = os.path.abspath('.')
 # labels = np.array(all_data['label'])
 
 # E2DTC
-traj_path = '../traj/e2dtcF/data.h5'
-embed_path = '../traj/e2dtc/embed_256_bert50.pt'
-embed_path = '../data/e2dtcF/bow.pt'
-# dataset_path = './gnn/geolife_e2dtc'
+traj_path = './traj/e2dtcF/data.h5'
+embed_path = './traj/e2dtc/embed_256_bert50.pt'
+embed_path = './embeddings/bert/e2dtcF.pt'
+dataset_path = './gnn/geolife_e2dtcF_bert_1107'
 
 all_traj = pd.read_hdf(traj_path)
 labels = np.array(all_traj['label'])
@@ -42,13 +42,14 @@ print("Time:", datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 print(5*'='+'>', 'Generate KNN Graph...')
 
 start_time = time.time()
-embeddings = torch.load(embed_path + '/embed_256_batch_0.pt')
-# concat embeddings
-for i in range (1,259):
-    embedding = torch.load(embed_path + f'/embed_256_batch_{i}.pt')
-    embeddings = torch.cat((embeddings, embedding), dim=0)
-
-embeddings = embeddings.cpu().detach().numpy()
+# embeddings = torch.load(embed_path + '/embed_256_batch_0.pt')
+# # concat embeddings
+# for i in range (1,259):
+#     embedding = torch.load(embed_path + f'/embed_256_batch_{i}.pt')
+#     embeddings = torch.cat((embeddings, embedding), dim=0)
+#
+# embeddings = embeddings.cpu().detach().numpy()
+embeddings = torch.load(embed_path)
 print('embedding shape:', embeddings.shape)
 nbrs = NearestNeighbors(n_neighbors=10, algorithm='ball_tree').fit(embeddings)
 distances, indices = nbrs.kneighbors(embeddings)

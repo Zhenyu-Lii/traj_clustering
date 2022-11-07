@@ -64,11 +64,12 @@ def save_embedding(model, args, cuda0, cuda2):
 
     # 在这里生成了所有的embedding，可以构造全局的fKNNG，考虑使用rNNG，怎么定义radius呢？
     vecs = torch.cat(vecs)
-    vecs = (10*vecs).round()
+    # vecs = (10*vecs).round()
     print("==>Saving embeddings...")
-    torch.save(vecs, './dataset/embeddings/gru/e2dtcF_round.pt')
+    torch.save(vecs, './dataset/embeddings/gru/e2dtcF.pt')
     end_time = time.time()
     print(f"Total Time: {end_time - start_time:.2f}s")
+    exit(-10)
 
     print("==> Generate KNN Graph...")
     X = np.array(vecs.cpu())

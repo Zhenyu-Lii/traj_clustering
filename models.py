@@ -247,7 +247,7 @@ class EncoderDecoder(nn.Module):
 
 
 class clusterLayer(nn.Module):
-    def __init__(self, n_clusters, hidden_size, alpha=1):
+    def __init__(self, args, alpha=1):
         super(clusterLayer, self).__init__()
 
         self.clusters = Parameter(torch.Tensor(
@@ -287,7 +287,6 @@ class DTC(nn.Module):
                                           args.bidirectional).to(device[0])
         self.rclayer = nn.Sequential(nn.Linear(args.hidden_size, args.vocab_size),
                                      nn.LogSoftmax(dim=1)).to(device[1])
-        self.gcnlayer = GCN_Net(args, hidden=64).to(device[3])
         self.clusterlayer = clusterLayer(args, alpha).to(device[2])
 
     def forward(self, src, lengths, trg):
