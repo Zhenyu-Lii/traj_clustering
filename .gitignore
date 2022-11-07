@@ -19,3 +19,5 @@ dataset/traj/e2dtc/embed_256_bert50.pt
 dataset/traj/e2dtc/embed_256_epoch_150.pt
 feature_learning/bert/data/E2DTC/embed_256_bert50.pt
 feature_learning/bert/data/E2DTC/embed_256_epoch_150.pt
+dataset/tmp.py
+preprocess/CDR/test.py
