@@ -247,11 +247,11 @@ class EncoderDecoder(nn.Module):
 
 
 class clusterLayer(nn.Module):
-    def __init__(self, n_clusters, hidden_size, alpha=1):
+    def __init__(self, args, alpha=1):
         super(clusterLayer, self).__init__()
 
         self.clusters = Parameter(torch.Tensor(
-            n_clusters, hidden_size), requires_grad=True)
+            args.n_clusters, args.hidden_size), requires_grad=True)
         self.alpha = alpha
 
     def forward(self, context):
@@ -310,7 +310,6 @@ class DTC(nn.Module):
             save_embedding([self.autoencoder, self.clusterlayer],
                          self.args, self.device[0], self.device[2])
         #
-
 
 class GCN_Net(nn.Module):
     def __init__(self, args, hidden=64):

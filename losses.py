@@ -3,6 +3,7 @@ import torch.nn as nn
 import h5py
 import os
 import constants
+import numpy as np
 
 
 def KLDIVloss(output, target, V, D, loss_cuda):
@@ -46,7 +47,7 @@ def load_dis_matrix(args):
         "{} does not exist".format(args.knearestvocabs)
     with h5py.File(args.knearestvocabs, 'r') as f:
         V, D = f["V"], f["D"]
-        V, D = torch.LongTensor(V), torch.FloatTensor(D)
+        V, D = torch.LongTensor(np.array(V)), torch.FloatTensor(np.array(D))
     D = dist2weight(D, args.dist_decay_speed)
     return V, D
 

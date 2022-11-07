@@ -29,11 +29,10 @@ cwd = os.path.abspath('.')
 # labels = np.array(all_data['label'])
 
 # E2DTC
-traj_path = './data/E2DTC/data.h5'
-embed_path = './data/E2DTC/embed_256_bert50.pt'
-embed_path = './data/E2DTC/maxlen_79'
-# dataset_path = './data/gnn/geolife_e2dtc'
-dataset_path = './data/gnn/geolife_ts_79'
+traj_path = '../traj/e2dtcF/data.h5'
+embed_path = '../traj/e2dtc/embed_256_bert50.pt'
+embed_path = '../data/e2dtcF/bow.pt'
+# dataset_path = './gnn/geolife_e2dtc'
 
 all_traj = pd.read_hdf(traj_path)
 labels = np.array(all_traj['label'])
