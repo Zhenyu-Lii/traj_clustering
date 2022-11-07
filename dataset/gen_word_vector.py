@@ -40,6 +40,6 @@ word_list = [gen_word_vector(max_id, traj) for traj in data['trajectory']]
 
 torch.save(torch.tensor(word_list), f'./traj/{dataset}/bow.pt')
 print('==>word list saved.')
-print(f'save_path: ./traj/{dataset}/bow.pt')
+print(f'save_path: ./traj/{dataset}/{dataset}_bow.pt')
 
 

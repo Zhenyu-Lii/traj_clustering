@@ -275,7 +275,7 @@ def visualization_data(data, col=['lon', 'lat'], accuracy=500, height=500,
     return vmap
 
 file_path = os.path.abspath('..') + '/preprocess/'
-
+print(os.getcwd())
 df_all = pd.read_hdf('../preprocess/Geolife/processed/Geolife_all_user.h5', key='data')
 
 data = df_all[df_all['user']==0]

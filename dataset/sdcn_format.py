@@ -30,7 +30,7 @@ cwd = os.path.abspath('.')
 
 # E2DTC
 dataset = 'e2dtcF'
-embed_name = 'e2dtcF_round'
+embed_name = 'e2dtcF_bow'
 
 traj_path = f'./traj/{dataset}/data.h5'
 data_path = f'./traj/{dataset}/{embed_name}.pt'
