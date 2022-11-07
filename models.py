@@ -247,7 +247,7 @@ class EncoderDecoder(nn.Module):
 
 
 class clusterLayer(nn.Module):
-    def __init__(self, args, alpha=1):
+    def __init__(self, n_clusters, hidden_size, alpha=1):
         super(clusterLayer, self).__init__()
 
         self.clusters = Parameter(torch.Tensor(
@@ -342,7 +342,7 @@ class GCN(torch.nn.Module):
         x = F.dropout(x, p=0.5, training=self.training)
         x = self.conv2(x, edge_index)
 
-        # x = F.log_softmax(x, dim=1)
+        # # x = F.log_softmax(x, dim=1)
         return x
 
 class GCNEncoder(torch.nn.Module):
@@ -354,4 +354,5 @@ class GCNEncoder(torch.nn.Module):
     def forward(self, x, edge_index):
         x = self.conv1(x, edge_index).relu()
         return self.conv2(x, edge_index)
+
 
