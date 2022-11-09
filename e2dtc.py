@@ -1,4 +1,7 @@
 import argparse
+
+import pandas as pd
+
 from train import train
 import torch
 
@@ -15,8 +18,12 @@ parser.add_argument("-data", default=root_path + "/data/filtered",
 # parser.add_argument("-src_file", default=root_path + "/data/trj_vocab.h5",
 #                     help="source trajectory file to cluster")
 
+# parser.add_argument("-src_file", default=root_path + "/data/trj_vocab_filtered.h5",
+#                     help="source trajectory file to cluster")
+
 parser.add_argument("-src_file", default=root_path + "/data/trj_vocab_filtered.h5",
                     help="source trajectory file to cluster")
+
 
 # parser.add_argument("-label_file", default=root_path + "/data/labels.pkl",
 #                     help="cluster label")
@@ -36,7 +43,7 @@ parser.add_argument("-cluster_center", default=root_path +
 parser.add_argument("-checkpoint", default=root_path + "/model/checkpoint.pt",
                     help="The saved checkpoint")
 
-parser.add_argument("-n_clusters", type=int, default=20,
+parser.add_argument("-n_clusters", type=int, default=12,
                     help="Number of luster")
 
 parser.add_argument("-num_layers", type=int, default=4,
@@ -109,8 +116,19 @@ parser.add_argument("-vocab_size", type=int, default=0,
 parser.add_argument("-update_centroids", type=bool, default=False,
                     help="Update Centroids")
 
+parser.add_argument("-dataset", default='e2dtcF',
+                    help="choose dataset")
+
 if __name__ == "__main__":
     args = parser.parse_args()
+    if args.dataset == 'cdr':
+        args.vocab_size = 586
+        args.data = './data/cdr'
+        args.src_file = './data/cdr/trj_vocab_cdr.h5'
+        args.label_file = "./data/cdr/labels_cdr.pkl"
+        args.knearestvocabs = './data/cdr/cdr-vocab-dist-582.h5'
+        args.n_clusters = len(pd.read_csv('./data/cdr/cluster_center_15.csv'))
+
     for k, v in args._get_kwargs():
         print("{0} =  {1}".format(k, v))
 

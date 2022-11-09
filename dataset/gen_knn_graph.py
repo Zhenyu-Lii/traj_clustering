@@ -31,7 +31,7 @@ cwd = os.path.abspath('.')
 # E2DTC
 traj_path = './traj/e2dtcF/data.h5'
 embed_path = './traj/e2dtc/embed_256_bert50.pt'
-embed_path = './embeddings/bert/e2dtcF.pt'
+embed_path = './pretrain_embeddings/bert/e2dtcF.pt'
 dataset_path = './gnn/geolife_e2dtcF_bert_1107'
 
 all_traj = pd.read_hdf(traj_path)

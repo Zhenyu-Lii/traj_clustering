@@ -50,7 +50,7 @@ def save_embedding(model, args, cuda0, cuda2):
 
     print("Time:", datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
     start_time = time.time()
-    print("=> Generate embeddings for all trajectory...")
+    print("=> Generate pretrain_embeddings for all trajectory...")
     while True:
         trjdata = scaner.getbatch()
         if trjdata is None:
@@ -65,8 +65,8 @@ def save_embedding(model, args, cuda0, cuda2):
     # 在这里生成了所有的embedding，可以构造全局的fKNNG，考虑使用rNNG，怎么定义radius呢？
     vecs = torch.cat(vecs)
     # vecs = (10*vecs).round()
-    print("==>Saving embeddings...")
-    torch.save(vecs, './dataset/embeddings/gru/e2dtcF.pt')
+    print("==>Saving pretrain_embeddings...")
+    torch.save(vecs, f'dataset/pretrain_embeddings/gru/{args.dataset}_epoch_{args.pretrian_epoch}.pt')
     end_time = time.time()
     print(f"Total Time: {end_time - start_time:.2f}s")
     exit(-10)

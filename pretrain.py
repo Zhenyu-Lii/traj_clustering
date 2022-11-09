@@ -1,3 +1,5 @@
+import datetime
+
 import torch
 import torch.nn as nn
 from torch.nn.utils import clip_grad_norm_
@@ -89,17 +91,17 @@ def pretrain_ae(model, args, cuda0, cuda1, loss_cuda):
     print("-"*7 + " start pretrain " + "-"*7)
     # load data for pretrain
     print("=> Reading training data...")
-    trainsrc = os.path.join(args.data, "train_filtered.src")
-    traintrg = os.path.join(args.data, "train_filtered.trg")
-    trainmta = os.path.join(args.data, "train_filtered.mta")
+    trainsrc = os.path.join(args.data, "train.src")
+    traintrg = os.path.join(args.data, "train.trg")
+    trainmta = os.path.join(args.data, "train.mta")
     trainData = DataLoader(trainsrc, traintrg, trainmta,
                            args.batch)
     trainData.load()
     print("Loaded data,training data size ", trainData.size)
 
-    valsrc = os.path.join(args.data, "val_filtered.src")
-    valtrg = os.path.join(args.data, "val_filtered.trg")
-    valmta = os.path.join(args.data, "val_filtered.mta")
+    valsrc = os.path.join(args.data, "val.src")
+    valtrg = os.path.join(args.data, "val.trg")
+    valmta = os.path.join(args.data, "val.mta")
     validation = True
 
     if os.path.isfile(valsrc) and os.path.isfile(valtrg):
@@ -138,6 +140,7 @@ def pretrain_ae(model, args, cuda0, cuda1, loss_cuda):
         if iteration % args.print_freq == 0:
             print("Iteration: {0:}\tReconstruction genLoss: {1:.3f}\t".format(
                 iteration, loss))
+            print("Time:", datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
         if (iteration % args.save_freq == 0 or iteration == num_iteration - 1) and validation:
             prec_loss = validate(
@@ -155,5 +158,6 @@ def pretrain_ae(model, args, cuda0, cuda1, loss_cuda):
                     "pretrain": False
                 }, args)
     print("-"*7 + " Pretrain model finished " + "-"*7)
+    print("Time:", datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
 
