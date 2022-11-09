@@ -17,3 +17,5 @@ feature_learning/bert/data/E2DTC/embed_256_bert50.pt
 feature_learning/bert/data/E2DTC/embed_256_epoch_150.pt
 dataset/tmp.py
 preprocess/CDR/test.py
+dataset/gnn/geolife_e2dtcF_bert_1107/bert_context_19_0.9469.pt
+dataset/gnn/geolife_e2dtcF_bert_1107/processed/data.pt
