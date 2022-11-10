@@ -81,7 +81,7 @@ parser.add_argument("-gen_batch", type=int, default=32,
 parser.add_argument("-batch", type=int, default=256,
                     help="The batch size")
 
-parser.add_argument("-pretrain_epoch", type=float, default=10,
+parser.add_argument("-pretrain_epoch", type=int, default=10,
                     help="The pretrain epoch")
 
 parser.add_argument("-epoch", type=int, default=20,
@@ -118,6 +118,9 @@ parser.add_argument("-update_centroids", type=bool, default=False,
 
 parser.add_argument("-dataset", default='e2dtcF',
                     help="choose dataset")
+
+parser.add_argument("-pretrain_mode", type=bool, default=True,
+                    help="just use AE to get pretrain embeddings")
 
 if __name__ == "__main__":
     args = parser.parse_args()

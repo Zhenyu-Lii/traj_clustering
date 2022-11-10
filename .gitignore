@@ -9,7 +9,6 @@ feature_learning/bert/data/Geolife.zip
 feature_learning/bert/data/Geolife/embeddings_256.npy
 /preprocess/Geolife/processed/
 /preprocess/CDR/processed/
-/data/
 /feature_learning/bert/data/gnn/
 dataset/traj/e2dtc/embed_256_bert50.pt
 dataset/traj/e2dtc/embed_256_epoch_150.pt
@@ -19,3 +18,7 @@ dataset/tmp.py
 preprocess/CDR/test.py
 dataset/gnn/geolife_e2dtcF_bert_1107/bert_context_19_0.9469.pt
 dataset/gnn/geolife_e2dtcF_bert_1107/processed/data.pt
+/data/filtered/
+/data/geolife/
+/data/gnn/
+/data/traj/

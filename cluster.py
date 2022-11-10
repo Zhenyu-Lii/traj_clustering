@@ -48,7 +48,6 @@ def save_embedding(model, args, cuda0, cuda2):
     scaner = DataOrderScaner(args.src_file, args.batch)
     scaner.load()  # load trg data
 
-    print("Time:", datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
     start_time = time.time()
     print("=> Generate pretrain_embeddings for all trajectory...")
     while True:
@@ -66,11 +65,13 @@ def save_embedding(model, args, cuda0, cuda2):
     vecs = torch.cat(vecs)
     # vecs = (10*vecs).round()
     print("==>Saving pretrain_embeddings...")
-    torch.save(vecs, f'dataset/pretrain_embeddings/gru/{args.dataset}_epoch_{args.pretrian_epoch}.pt')
+    torch.save(vecs, f'dataset/pretrain_embeddings/gru/{args.dataset}_epoch_{args.pretrain_epoch:d}.pt')
     end_time = time.time()
     print(f"Total Time: {end_time - start_time:.2f}s")
-    exit(-10)
-
+    if args.pretrain_mode == True:
+        print("==>Pretrain Mode Finished.")
+        exit(-10)
+    '''
     print("==> Generate KNN Graph...")
     X = np.array(vecs.cpu())
 
@@ -84,12 +85,12 @@ def save_embedding(model, args, cuda0, cuda2):
     print("-" * 7 + "edge index!" + "-" * 7)
     print(edge_index)
     '''
+    '''
     构建GNN的数据集
     '''
     # 放入datalist
-    dataset = MyOwnDataset('./data/gnn/filtered', edge_index, X, Y)
-
-'''
+    # dataset = MyOwnDataset('./data/gnn/filtered', edge_index, X, Y)
+    '''
     torch.save({
         "clusters": clusterlayer.clusters.data.cpu(),
         "n_clusters": args.n_clusters
