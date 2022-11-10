@@ -1,5 +1,3 @@
-import datetime
-
 import torch
 import pandas as pd
 import numpy as np
@@ -29,16 +27,22 @@ cwd = os.path.abspath('.')
 # labels = np.array(all_data['label'])
 
 # E2DTC
-dataset = 'e2dtcF'
-embed_name = 'e2dtcF_bert'
+dataset = 'cdr'
+datafile = 'data_cdr'
+embed_name = 'cdr_newIndex585_gru_epoch_50'
 
-traj_path = f'./traj/{dataset}/data.h5'
+traj_path = f'./traj/{dataset}/{datafile}.h5'
 data_path = f'./traj/{dataset}/embeddings/{embed_name}.pt'
 
 vecs = torch.load(data_path).numpy()
 vecs = (10*vecs).round()
 all_traj = pd.read_hdf(traj_path)
 labels = np.array(all_traj['label']).T
+
+dirs = f'./for_sdcn/{dataset}/'
+
+if not os.path.exists(dirs):
+    os.makedirs(dirs)
 
 np.savetxt(f'./for_sdcn/{dataset}/{embed_name}.txt', vecs, fmt='%d')
 np.savetxt(f'./for_sdcn/{dataset}/{embed_name}_label.txt', labels, fmt='%d')

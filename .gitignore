@@ -21,3 +21,15 @@ dataset/gnn/geolife_e2dtcF_bert_1107/processed/data.pt
 /data/geolife/
 /data/gnn/
 /data/traj/
+preprocess/CDR/train_traj_5.h5
+preprocess/CDR/test_traj_5.h5
+feature_learning/bert/data/Geolife/all_traj_labeled_σ_0.8_λ_0.6.h5
+feature_learning/bert/data/E2DTC/label.h5
+feature_learning/bert/data/E2DTC/data.h5
+dataset/traj/e2dtcF/trj_vocab_filtered.h5
+dataset/traj/e2dtcF/data.h5
+dataset/traj/e2dtc/label.h5
+dataset/traj/e2dtc/data.h5
+data/trj_vocab_filtered.h5
+data/trj_vocab_cdr.h5
+*.pt

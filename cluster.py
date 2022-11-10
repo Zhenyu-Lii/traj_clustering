@@ -65,7 +65,12 @@ def save_embedding(model, args, cuda0, cuda2):
     vecs = torch.cat(vecs)
     # vecs = (10*vecs).round()
     print("==>Saving pretrain_embeddings...")
-    torch.save(vecs, f'dataset/pretrain_embeddings/gru/{args.dataset}_epoch_{args.pretrain_epoch:d}.pt')
+    torch.save(vecs, f'dataset/pretrain_embeddings/gru/{args.dataset}_gru_epoch_{args.pretrain_epoch:d}.pt')
+    if args.dataset == 'cdr_newIndex585':
+        torch.save(vecs, f'dataset/traj/cdr/embeddings/{args.dataset}_gru_epoch_{args.pretrain_epoch:d}.pt')
+    else:
+        torch.save(vecs, f'dataset/traj/{args.dataset}/embeddings/{args.dataset}_gru_epoch_{args.pretrain_epoch:d}.pt')
+
     end_time = time.time()
     print(f"Total Time: {end_time - start_time:.2f}s")
     if args.pretrain_mode == True:

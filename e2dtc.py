@@ -131,6 +131,13 @@ if __name__ == "__main__":
         args.label_file = "./data/cdr/labels_cdr.pkl"
         args.knearestvocabs = './data/cdr/cdr-vocab-dist-582.h5'
         args.n_clusters = len(pd.read_csv('./data/cdr/cluster_center_15.csv'))
+    if args.dataset == 'cdr_newIndex585':
+        args.vocab_size = 586
+        args.data = f'./data/{args.dataset}'
+        args.src_file = f'./data/{args.dataset}/trj_vocab_cdr.h5'
+        args.label_file = f"./data/{args.dataset}/labels_cdr.pkl"
+        args.knearestvocabs = f'./data/{args.dataset}/cdr-vocab-dist-585.h5'
+        args.n_clusters = len(pd.read_csv(f'./data/{args.dataset}/cluster_center_15.csv'))
 
     for k, v in args._get_kwargs():
         print("{0} =  {1}".format(k, v))
