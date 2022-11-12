@@ -29,10 +29,11 @@ cwd = os.path.abspath('.')
 # E2DTC
 dataset = 'cdr'
 datafile = 'data_cdr'
-embed_name = 'cdr_newIndex585_gru_epoch_50'
+pretrain_model = 'gru'
+embed_name = f'cdr_newIndex585_gru_epoch_20'
 
 traj_path = f'./traj/{dataset}/{datafile}.h5'
-data_path = f'./traj/{dataset}/embeddings/{embed_name}.pt'
+data_path = f'./pretrain_embeddings/{pretrain_model}/{embed_name}.pt'
 
 vecs = torch.load(data_path).numpy()
 vecs = (10*vecs).round()

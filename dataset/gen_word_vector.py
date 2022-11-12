@@ -4,8 +4,8 @@ from collections import Counter
 import torch
 
 save = True
-dataset = 'cdr'
-file_name = 'data_cdr'
+dataset = 'e2dtcF'
+file_name = 'data'
 data_path = f'./traj/{dataset}/{file_name}.h5'
 if (dataset == 'cdr'):
     loc_index_cdr = pd.read_csv('../preprocess/CDR/processed/loc_index_cdr_582.csv')
