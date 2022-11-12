@@ -32,4 +32,3 @@ dataset/traj/e2dtc/label.h5
 dataset/traj/e2dtc/data.h5
 data/trj_vocab_filtered.h5
 data/trj_vocab_cdr.h5
-*.pt
